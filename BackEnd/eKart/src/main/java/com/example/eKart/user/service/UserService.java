@@ -8,5 +8,5 @@ public interface UserService {
 
     public UserData createUser(UserData userData);
 
-    Boolean loginUser(LoginData loginData);
+    String loginUser(LoginData loginData);
 }

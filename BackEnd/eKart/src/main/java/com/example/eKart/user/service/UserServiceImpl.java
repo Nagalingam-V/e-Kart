@@ -8,6 +8,9 @@ import com.example.eKart.user.exception.UserNotFoundException;
 import org.apache.catalina.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -20,10 +23,14 @@ public class UserServiceImpl implements UserService{
     private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
     private final UsersRepository usersRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
 
-    public UserServiceImpl(UsersRepository usersRepository, PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UsersRepository usersRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtService jwtService) {
         this.usersRepository = usersRepository;
         this.passwordEncoder = passwordEncoder;
+        this.authenticationManager = authenticationManager;
+        this.jwtService = jwtService;
     }
 
     @Override
@@ -34,19 +41,17 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public Boolean loginUser(LoginData loginData) {
-        Users user = usersRepository.findByUserName(loginData.getUserName());
-        if(Objects.isNull(user)){
-            log.error("Entered Wrong User name");
-            throw new UserNotFoundException(loginData.getUserName());
-        }
+    public String loginUser(LoginData loginData) {
 
-       if(!passwordEncoder.matches(loginData.getPassword(), user.getPassword())){
-           log.error("Password missMatch, kindly reEnter correct password");
-           throw new RuntimeException("Password is Incorrect");
+        Authentication authenticate = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(loginData.getUserName(), loginData.getPassword())
+        );
+
+       if(authenticate.isAuthenticated()){
+           Users user = usersRepository.findByUserName(loginData.getUserName());
+           return jwtService.generateToken(user);
        }
-
-        return true;
+        return "failed to log-in";
     }
 
 

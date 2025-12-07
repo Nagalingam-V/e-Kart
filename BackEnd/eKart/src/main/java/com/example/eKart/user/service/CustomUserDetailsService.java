@@ -1,4 +1,4 @@
-package com.example.eKart.user.config.service;
+package com.example.eKart.user.service;
 
 import com.example.eKart.user.domain.Users;
 import com.example.eKart.user.domain.UsersRepository;

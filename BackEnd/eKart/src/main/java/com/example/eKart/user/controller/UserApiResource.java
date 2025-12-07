@@ -25,7 +25,7 @@ public class UserApiResource {
     }
 
     @PostMapping(path = "/login")
-    public ResponseEntity<Boolean> login(@RequestBody LoginData loginData){
+    public ResponseEntity<String> login(@RequestBody LoginData loginData){
         return ResponseEntity.ok(userService.loginUser(loginData));
     }
 

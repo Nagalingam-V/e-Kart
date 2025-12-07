@@ -1,4 +1,4 @@
-package com.example.eKart.user.config.service;
+package com.example.eKart.user.service;
 
 import com.example.eKart.user.domain.Users;
 import org.springframework.security.core.GrantedAuthority;
@@ -8,7 +8,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 
-//@Component
 public class CustomUserDetails implements UserDetails {
 
     private final Users users;
