@@ -1,45 +1,64 @@
 package com.example.eKart.products.service;
 
 import com.example.eKart.products.data.ProductData;
-import com.example.eKart.products.entity.Products;
+import com.example.eKart.products.domain.ProductCategory;
+import com.example.eKart.products.domain.ProductStatus;
+import com.example.eKart.products.domain.Products;
+import com.example.eKart.products.repository.ProductCategoryRepository;
 import com.example.eKart.products.repository.ProductsRepository;
+import com.example.eKart.products.util.SkuGenerator;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Optional;
-
 @Service
+@AllArgsConstructor
 public class ProductServiceWriteImpl {
 
     private final ProductsRepository productRepository;
+    private final ProductCategoryRepository productCategoryRepository;
 
-    ProductServiceWriteImpl(ProductsRepository productRepository){
-        this.productRepository = productRepository;
+
+    public Products createProduct(ProductData productData) {
+
+        ProductCategory category =
+                productCategoryRepository.findById(productData.getCategoryId())
+                        .orElseThrow(() -> new RuntimeException("Invalid Category, Check the Category Once"));
+
+        ProductStatus status = ProductStatus.fromCode(productData.getProductStatus());
+
+        boolean inStock = productData.getStockQuantity() > 0;
+
+        String sku = SkuGenerator.generateSKU(productData.getProductName(), productData.getBrand());
+
+        Products product =
+                Products
+                        .builder()
+                        .sku(sku)
+                        .productCategory(category)
+                        .productName(productData.getProductName())
+                        .brand(productData.getBrand())
+                        .productDescription(productData.getProductDescription())
+                        .productPrice(productData.getProductPrice())
+                        .discountPrice(productData.getDiscountPrice())
+                        .discountPercent(productData.getDiscountPercent())
+                        .stockQuantity(productData.getStockQuantity())
+                        .inStock(inStock)
+                        .productStatus(status)
+                        .build();
+
+        return productRepository.save(product);
+
     }
 
-    public ProductData createProduct(ProductData productData) {
-        Products products = Products.createNewProductWithData(productData);
-        Products savedProducts = productRepository.saveAndFlush(products);
-        return ProductData.fromEntity(savedProducts);
-    }
+//    public ProductData getProduct(Long id) {
+//        Products prod = productRepository.findById(id)
+//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
+//        return ProductData.fromEntity(prod);
+//    }
 
-    public ProductData getProduct(Long id) {
-        Products prod = productRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
-        return ProductData.fromEntity(prod);
-    }
 
-    public ProductData updateProduct(Long id, ProductData productData) {
-        Products existing = productRepository.findById(id).orElseThrow();
 
-        existing.setProduct_Name(productData.getProduct_Name());
-        existing.setProduct_category(productData.getProduct_category());
-        existing.setProduct_price(productData.getProduct_price());
 
-        Products updated = productRepository.save(existing);
-
-        return ProductData.fromEntity(updated);
-    }
 }
