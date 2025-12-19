@@ -1,7 +1,6 @@
 package com.example.eKart.products.domain;
 
 import com.example.eKart.audit.AuditMetadata;
-import com.example.eKart.products.data.ProductData;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
