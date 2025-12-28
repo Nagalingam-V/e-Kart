@@ -2,9 +2,12 @@ package com.example.eKart.user.service;
 
 import com.example.eKart.user.data.LoginData;
 import com.example.eKart.user.data.UserData;
+import com.example.eKart.user.data.UserRegisteredEvent;
 import com.example.eKart.user.domain.Users;
 import com.example.eKart.user.domain.UsersRepository;
 import com.example.eKart.user.exception.UserNotFoundException;
+import com.example.eKart.user.messaging.producer.UserEventProducer;
+import lombok.AllArgsConstructor;
 import org.apache.catalina.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,26 +21,26 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Service
+@AllArgsConstructor
 public class UserServiceImpl implements UserService{
 
-    private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
     private final UsersRepository usersRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+    private final UserEventProducer userEventProducer;
 
-    public UserServiceImpl(UsersRepository usersRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtService jwtService) {
-        this.usersRepository = usersRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.authenticationManager = authenticationManager;
-        this.jwtService = jwtService;
-    }
 
     @Override
     public UserData createUser(UserData userData) {
        userData.setPassword(passwordEncoder.encode(userData.getPassword()));
         Users user = mapToEntity(userData);
-        return mapToResponse(usersRepository.save(user));
+        UserData createdUser = mapToResponse(usersRepository.save(user));
+        //send Message to User Email
+        UserRegisteredEvent event = new UserRegisteredEvent(createdUser.getId(),createdUser.getEmail(), createdUser.getFirstName() +" "+ createdUser.getLastName());
+        userEventProducer.sendUserRegisteredEvent(event);
+
+        return createdUser;
     }
 
     @Override

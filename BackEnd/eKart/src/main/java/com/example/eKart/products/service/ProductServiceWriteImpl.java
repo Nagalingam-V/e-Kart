@@ -5,6 +5,7 @@ import com.example.eKart.products.data.ProductResponse;
 import com.example.eKart.products.domain.ProductCategory;
 import com.example.eKart.products.domain.ProductStatus;
 import com.example.eKart.products.domain.Products;
+import com.example.eKart.products.exception.ProductNotFoundException;
 import com.example.eKart.products.mapper.ProductMapper;
 import com.example.eKart.products.repository.ProductCategoryRepository;
 import com.example.eKart.products.repository.ProductsRepository;
@@ -12,11 +13,8 @@ import com.example.eKart.products.util.SkuGenerator;
 import lombok.AllArgsConstructor;
 import org.mapstruct.factory.Mappers;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -54,7 +52,7 @@ public class ProductServiceWriteImpl {
     public ProductResponse getProduct(Long id) {
 
         Products prod = productRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
+                .orElseThrow(() -> new ProductNotFoundException("Product with id:" + id + " not found"));
 
         return productMapper.mapProductstoProductResponse(prod);
 
